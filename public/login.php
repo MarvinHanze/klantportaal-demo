@@ -209,11 +209,12 @@ $brandColor = is_array($pendingUserFull) ? ($pendingUserFull['brand_color'] ?? '
                     <label for="email" class="block text-sm font-medium text-slate-700 mb-1">E-mailadres</label>
                     <input type="email" id="email" name="email" required
                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none transition"
-                           value="<?php echo e($emailValue ?? ''); ?>">
+                           value="<?php echo e($emailValue ?? 'klant@bakkerzonen.nl'); ?>">
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-medium text-slate-700 mb-1">Wachtwoord</label>
                     <input type="password" id="password" name="password" required
+                           value="<?php echo e(DEMO_USER_PASSWORD); ?>"
                            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none transition">
                 </div>
                 <button type="submit" class="hz-btn hz-btn--primary w-full justify-center py-2.5">Inloggen</button>
