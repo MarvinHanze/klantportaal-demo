@@ -60,9 +60,13 @@ function ensure_schema(): void
 function check_auto_reset(): void
 {
     $pdo = db();
-    $pdo->exec("INSERT IGNORE INTO klant_settings (id, last_reset) VALUES (1, NOW())");
-
     $row = $pdo->query("SELECT last_reset FROM klant_settings WHERE id = 1")->fetch();
+
+    if (!$row) {
+        $pdo->exec("INSERT INTO klant_settings (id, last_reset) VALUES (1, '1970-01-01 00:00:00')");
+        $row = $pdo->query("SELECT last_reset FROM klant_settings WHERE id = 1")->fetch();
+    }
+
     $last = strtotime((string) $row['last_reset']);
     $minutes_since = (time() - $last) / 60;
 
