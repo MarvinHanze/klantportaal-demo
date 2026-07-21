@@ -9,8 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim((string) ($_POST['email'] ?? ''));
     $pass = (string) ($_POST['password'] ?? '');
 
-    if ($email === AUTH_EMAIL && $pass === AUTH_PASS) {
+    if ($email === AUTH_EMAIL && password_verify($pass, DEMO_PASSWORD_HASH)) {
         $_SESSION['authenticated'] = true;
+        session_regenerate_id(true);
         seed_demo_data();
         header('Location: ' . BASE . '/index.php');
         exit;
@@ -43,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" class="space-y-5">
+            <?php echo csrfField(); ?>
             <div>
                 <label for="email" class="block text-sm font-medium text-slate-700 mb-1">E-mailadres</label>
                 <input type="email" id="email" name="email" required

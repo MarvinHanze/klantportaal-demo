@@ -17,6 +17,7 @@ $redirect = BASE . '/index.php';
 
 /* ─── Handle POST actions ─── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCSRF();
     $act = $_POST['action'] ?? '';
 
     if ($act === 'save') {
@@ -248,6 +249,7 @@ if ($action === 'edit' && isset($_GET['id'])) {
     <form method="POST" class="bg-white rounded-lg border border-slate-200 p-5">
         <input type="hidden" name="action" value="add_note">
         <input type="hidden" name="ticket_id" value="<?php echo $detailTicket['id']; ?>">
+        <?php echo csrfField(); ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Auteur</label>
@@ -271,6 +273,7 @@ if ($action === 'edit' && isset($_GET['id'])) {
 <form id="deleteForm-<?php echo $detailTicket['id']; ?>" method="POST" style="display:none">
     <input type="hidden" name="action" value="delete">
     <input type="hidden" name="id" value="<?php echo $detailTicket['id']; ?>">
+    <?php echo csrfField(); ?>
 </form>
 
 <?php else: ?>
@@ -394,11 +397,11 @@ if ($action === 'edit' && isset($_GET['id'])) {
                         <td colspan="7" class="px-5 py-12 text-center text-slate-400">Geen tickets gevonden.</td>
                     </tr>
                 <?php else: ?>
+                    <?php $noteCountStmt = $pdo->prepare("SELECT COUNT(*) FROM klant_notes WHERE ticket_id = ?"); ?>
                     <?php foreach ($tickets as $t): ?>
                         <?php
-                        $noteCount = $pdo->prepare("SELECT COUNT(*) FROM klant_notes WHERE ticket_id = ?");
-                        $noteCount->execute([$t['id']]);
-                        $noteCount = (int) $noteCount->fetchColumn();
+                        $noteCountStmt->execute([$t['id']]);
+                        $noteCount = (int) $noteCountStmt->fetchColumn();
                         ?>
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition cursor-pointer"
                             onclick="window.location='<?php echo BASE; ?>/index.php?action=detail&id=<?php echo $t['id']; ?>'">
@@ -448,7 +451,7 @@ if ($action === 'edit' && isset($_GET['id'])) {
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         </svg>
                                     </a>
-                                    <button onclick="openModal(<?php echo htmlspecialchars(json_encode($t), ENT_QUOTES, 'UTF-8'); ?>)"
+                                    <button onclick="openModal(<?php echo json_encode($t, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>)"
                                             class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition" title="Bewerken">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
@@ -466,6 +469,7 @@ if ($action === 'edit' && isset($_GET['id'])) {
                         <form id="deleteForm-<?php echo $t['id']; ?>" method="POST" style="display:none">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?php echo $t['id']; ?>">
+                            <?php echo csrfField(); ?>
                         </form>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -484,6 +488,7 @@ if ($action === 'edit' && isset($_GET['id'])) {
             <form method="POST" id="ticketForm">
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" id="form_id" value="">
+                <?php echo csrfField(); ?>
 
                 <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-slate-800" id="modalTitle">Nieuw ticket</h3>

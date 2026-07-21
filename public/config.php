@@ -11,6 +11,29 @@ define('DB_PASS', '23ns613Dyo1vgiAOQCt2ABFZzujOsxuyROvqNk4unUoZxWpwN9nIPrMNTt4QF
 
 define('AUTH_EMAIL', 'admin@demo.nl');
 define('AUTH_PASS', 'demo123');
+define('DEMO_PASSWORD_HASH', '$2b$10$.s8wUkPOQ5JJo66.Hwky9.A2uSXqDwnZ0MELz20yf.OibWrBMkfjW');
+
+function generateCSRFToken(): string
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function csrfField(): string
+{
+    return '<input type="hidden" name="csrf_token" value="' . generateCSRFToken() . '">';
+}
+
+function verifyCSRF(): void
+{
+    $token = $_POST['csrf_token'] ?? '';
+    if ($token === '' || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+        http_response_code(403);
+        exit('CSRF token mismatch.');
+    }
+}
 
 function db(): PDO
 {
