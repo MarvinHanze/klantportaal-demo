@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($email === AUTH_EMAIL && $pass === AUTH_PASS) {
         $_SESSION['authenticated'] = true;
+        seed_demo_data();
         header('Location: ' . BASE . '/index.php');
         exit;
     }
