@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-session_start();
 require __DIR__ . '/config.php';
+secure_session_start();
 ensure_schema();
 check_auto_reset();
 
@@ -31,29 +31,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $act = $_POST['action'] ?? '';
 
     if ($act === 'login') {
-        $email = trim((string) ($_POST['email'] ?? ''));
-        $pass = (string) ($_POST['password'] ?? '');
+        $remaining = loginLockoutRemaining();
+        if ($remaining > 0) {
+            $error = "Te veel mislukte inlogpogingen. Probeer het over {$remaining} seconden opnieuw.";
+            $emailValue = trim((string) ($_POST['email'] ?? ''));
+        } else {
+            $email = trim((string) ($_POST['email'] ?? ''));
+            $pass = (string) ($_POST['password'] ?? '');
 
-        $stmt = db()->prepare("SELECT * FROM kp_users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+            $stmt = db()->prepare("SELECT * FROM kp_users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
 
-        if ($user && password_verify($pass, $user['password_hash'])) {
-            $_SESSION['login_user_id'] = (int) $user['id'];
-            if (empty($user['totp_enabled'])) {
-                if (empty($user['totp_secret'])) {
-                    $secret = totp_generate_secret();
-                    db()->prepare("UPDATE kp_users SET totp_secret = ? WHERE id = ?")->execute([$secret, $user['id']]);
+            if ($user && password_verify($pass, $user['password_hash'])) {
+                resetFailedLogins();
+                $_SESSION['login_user_id'] = (int) $user['id'];
+                if (empty($user['totp_enabled'])) {
+                    if (empty($user['totp_secret'])) {
+                        $secret = totp_generate_secret();
+                        db()->prepare("UPDATE kp_users SET totp_secret = ? WHERE id = ?")->execute([$secret, $user['id']]);
+                    }
+                    $_SESSION['login_stage'] = 'setup';
+                } else {
+                    $_SESSION['login_stage'] = 'verify';
                 }
-                $_SESSION['login_stage'] = 'setup';
-            } else {
-                $_SESSION['login_stage'] = 'verify';
+                header('Location: ' . BASE . '/login.php');
+                exit;
             }
-            header('Location: ' . BASE . '/login.php');
-            exit;
+            registerFailedLogin();
+            $newRemaining = loginLockoutRemaining();
+            $error = $newRemaining > 0
+                ? "Te veel mislukte inlogpogingen. Probeer het over {$newRemaining} seconden opnieuw."
+                : 'Ongeldige inloggegevens.';
+            $emailValue = $email;
         }
-        $error = 'Ongeldige inloggegevens.';
-        $emailValue = $email;
     }
 
     if ($act === 'cancel') {

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-session_start();
 require __DIR__ . '/config.php';
+secure_session_start();
 requireAuth();
 ensure_schema();
 check_auto_reset();

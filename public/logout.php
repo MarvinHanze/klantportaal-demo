@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-session_start();
 require __DIR__ . '/config.php';
+secure_session_start();
 
 if (!empty($_SESSION['authenticated']) && !empty($_SESSION['account_id'])) {
     logAudit('logout', 'account', null, 'Uitgelogd uit klantportaal');

@@ -3,6 +3,25 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/assets/icons.php';
 
+/* ─────────────────────────── Foutafhandeling ───────────────────────────
+   Nooit ruwe PHP-fouten/stacktraces (met paden, queries, etc.) tonen aan de browser.
+   Fouten gaan naar de PHP-errorlog; de bezoeker krijgt een nette generieke pagina. */
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
+set_exception_handler(function (Throwable $e): void {
+    error_log('Onafgevangen exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+    echo '<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>Er ging iets mis</title></head>'
+        . '<body style="font-family:system-ui,sans-serif;padding:4rem 2rem;text-align:center;color:#475569;">'
+        . '<h1 style="color:#1e293b;">Er is iets misgegaan</h1>'
+        . '<p>Probeer het straks nogmaals. Het probleem is gelogd.</p></body></html>';
+    exit;
+});
+
 define('BASE', '/klantportaal');
 define('DEMO_RESET_MINUTES', 30);
 
@@ -81,6 +100,56 @@ function db(): PDO
    Elke query op klantdata MOET gefilterd zijn op account_id = currentAccountId().
    Dit voorkomt dat klant A via URL-manipulatie (bv. ?id=5 aanpassen) data van
    klant B kan zien of wijzigen. Zie elke pagina: WHERE ... AND account_id = ?. */
+
+/** Start de sessie met veilige cookie-instellingen (httponly, samesite, secure-over-https).
+ *  Moet worden aangeroepen vóórdat er output is verstuurd, en in plaats van een kale
+ *  session_start(). Pagina's moeten config.php requiren vóórdat ze de sessie starten,
+ *  anders zijn deze cookie-parameters al te laat om effect te hebben. */
+function secure_session_start(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $https,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
+
+/* ─────────────────────────── Brute-force bescherming (login) ───────────────────────────
+   Simpele sessie-gebaseerde lockout: na te veel mislukte wachtwoordpogingen moet de
+   gebruiker even wachten voor een volgende poging. Geen aparte tabel nodig voor deze demo;
+   de teller leeft in de sessie (net als $_SESSION['totp_attempts'] hierboven). */
+
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_SECONDS = 60;
+
+function loginLockoutRemaining(): int
+{
+    $until = (int) ($_SESSION['login_locked_until'] ?? 0);
+    return max(0, $until - time());
+}
+
+function registerFailedLogin(): void
+{
+    $_SESSION['login_fail_count'] = ($_SESSION['login_fail_count'] ?? 0) + 1;
+    if ($_SESSION['login_fail_count'] >= LOGIN_MAX_ATTEMPTS) {
+        $_SESSION['login_locked_until'] = time() + LOGIN_LOCKOUT_SECONDS;
+        $_SESSION['login_fail_count'] = 0;
+    }
+}
+
+function resetFailedLogins(): void
+{
+    unset($_SESSION['login_fail_count'], $_SESSION['login_locked_until']);
+}
 
 function requireAuth(): void
 {
