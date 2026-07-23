@@ -135,15 +135,89 @@ $brandColor = is_array($pendingUserFull) ? ($pendingUserFull['brand_color'] ?? '
     <title>Klantportaal - Inloggen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="<?php echo BASE; ?>/assets/css/components.css">
+    <style>
+        :root { --kp-rose: #e11d48; }
+        body.kp-crm {
+            min-height: 100vh;
+            background-color: #fafafa;
+            background-image:
+                repeating-linear-gradient(135deg, rgba(225,29,72,.045) 0 1px, transparent 1px 26px),
+                linear-gradient(rgba(15,23,42,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15,23,42,.035) 1px, transparent 1px);
+            background-size: auto, 40px 40px, 40px 40px;
+            display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+        }
+        .kp-shell {
+            display: grid; grid-template-columns: 1fr 1fr;
+            max-width: 880px; width: 100%;
+            background: #ffffff; border-radius: 1rem; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(15,23,42,.12), 0 2px 8px rgba(15,23,42,.06);
+            border: 1px solid #e5e7eb;
+        }
+        .kp-showcase {
+            background: linear-gradient(160deg, var(--kp-brand, #e11d48) 0%, #7f1233 100%);
+            color: #fff; padding: 2.25rem 2rem; display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; overflow: hidden;
+        }
+        .kp-showcase::after {
+            content: ""; position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.14) 1px, transparent 1px);
+            background-size: 18px 18px; opacity: .5;
+        }
+        .kp-showcase > * { position: relative; z-index: 1; }
+        .kp-mini-card {
+            background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+            border-radius: .6rem; padding: .75rem .9rem; margin-bottom: .6rem; backdrop-filter: blur(4px);
+        }
+        .kp-mini-card .kp-mc-top { display:flex; justify-content:space-between; align-items:center; font-size:.72rem; opacity:.85; margin-bottom:.25rem; }
+        .kp-mini-card .kp-mc-title { font-size:.85rem; font-weight:600; }
+        .kp-mc-pill { font-size:.62rem; font-weight:700; padding:.12rem .5rem; border-radius:999px; background:rgba(255,255,255,.25); text-transform:uppercase; letter-spacing:.03em; }
+        .kp-stat-row { display:flex; gap:1.25rem; margin-top:1.5rem; }
+        .kp-stat-row .kp-stat-num { font-size:1.4rem; font-weight:800; line-height:1; }
+        .kp-stat-row .kp-stat-lbl { font-size:.68rem; opacity:.8; margin-top:.15rem; }
+        .kp-formcol { padding: 2.25rem 2.25rem; }
+        @media (max-width: 760px) {
+            .kp-shell { grid-template-columns: 1fr; }
+            .kp-showcase { display: none; }
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-<div class="w-full max-w-md">
-    <div class="bg-white rounded-xl shadow-lg p-8">
-        <div class="flex items-center justify-center gap-3 mb-8">
-            <svg class="w-10 h-10" style="color: var(--kp-brand);" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
-            </svg>
-            <h1 class="text-2xl font-bold text-slate-800">Klantportaal</h1>
+<body class="kp-crm">
+<div class="kp-shell">
+    <div class="kp-showcase">
+        <div>
+            <div class="flex items-center gap-2 mb-6">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+                </svg>
+                <span class="font-bold text-lg">Klantportaal</span>
+            </div>
+            <p class="text-sm opacity-90 mb-5">Al je tickets, offertes en facturen op een centrale plek.</p>
+
+            <div class="kp-mini-card">
+                <div class="kp-mc-top"><span>#TCK-2291</span><span class="kp-mc-pill">Open</span></div>
+                <div class="kp-mc-title">Vraag over levertijd order</div>
+            </div>
+            <div class="kp-mini-card">
+                <div class="kp-mc-top"><span>#TCK-2288</span><span class="kp-mc-pill">In behandeling</span></div>
+                <div class="kp-mc-title">Wijziging contactgegevens</div>
+            </div>
+            <div class="kp-mini-card">
+                <div class="kp-mc-top"><span>#OFF-114</span><span class="kp-mc-pill">Verzonden</span></div>
+                <div class="kp-mc-title">Offerte jaarcontract 2026</div>
+            </div>
+        </div>
+        <div class="kp-stat-row">
+            <div><div class="kp-stat-num">12</div><div class="kp-stat-lbl">Open tickets</div></div>
+            <div><div class="kp-stat-num">4</div><div class="kp-stat-lbl">Offertes</div></div>
+            <div><div class="kp-stat-num">98%</div><div class="kp-stat-lbl">Tevredenheid</div></div>
+        </div>
+    </div>
+
+    <div class="kp-formcol">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">Welkom terug</h1>
+            <p class="text-sm text-slate-500 mt-1">Log in om je account te beheren</p>
         </div>
 
         <?php if (!empty($error)): ?>
