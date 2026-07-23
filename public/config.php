@@ -560,9 +560,22 @@ function seed_demo_data(): void
     }
     [$a1, $a2] = $accounts;
 
-    seed_kb_articles();
-    seed_account_business_data($a1, 'Bakker & Zonen BV', 'Marloes Bakker', 'klant@bakkerzonen.nl');
-    seed_account_business_data($a2, 'De Vries Consultancy', 'Thomas de Vries', 'klant@devriesconsult.nl');
+    // De TRUNCATEs hierboven committen in MySQL altijd meteen (kan niet anders), maar het
+    // opnieuw vullen hieronder is wél in één transactie: als dat halverwege faalt (bv. een
+    // tijdelijk verbindingsprobleem), blijven de tabellen niet half gevuld achter — alles
+    // wordt teruggedraaid en de volgende auto-reset-cyclus probeert het opnieuw.
+    $pdo->beginTransaction();
+    try {
+        seed_kb_articles();
+        seed_account_business_data($a1, 'Bakker & Zonen BV', 'Marloes Bakker', 'klant@bakkerzonen.nl');
+        seed_account_business_data($a2, 'De Vries Consultancy', 'Thomas de Vries', 'klant@devriesconsult.nl');
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
 }
 
 function seed_kb_articles(): void
