@@ -215,7 +215,7 @@ require __DIR__ . '/partials/nav.php';
                 <td class="text-slate-500"><?php echo e($t['department']); ?></td>
                 <td class="text-slate-400"><?php echo date('d-m-Y', strtotime($t['created_at'])); ?></td>
                 <td class="text-right" onclick="event.stopPropagation()">
-                    <button onclick='openModal(<?php echo json_encode($t, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>)' class="hz-icon-btn" title="Bewerken">&#9998;</button>
+                    <button onclick='openModal(<?php echo json_encode($t, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>)' class="hz-icon-btn" title="Bewerken"><?php echo hz_icon('edit'); ?></button>
                 </td>
             </tr>
         <?php endforeach; ?>

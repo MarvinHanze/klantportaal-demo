@@ -17,18 +17,22 @@ $recentNotifs->execute([currentAccountId()]);
 $recentNotifs = $recentNotifs->fetchAll();
 
 $navItems = [
-    'dashboard'    => ['label' => 'Dashboard',            'url' => BASE . '/index.php',        'icon' => '&#127968;'],
-    'offertes'     => ['label' => 'Offertes',              'url' => BASE . '/offertes.php',      'icon' => '&#128203;'],
-    'facturen'     => ['label' => 'Facturen',               'url' => BASE . '/facturen.php',      'icon' => '&#128179;'],
-    'projecten'    => ['label' => 'Projecten',              'url' => BASE . '/projecten.php',     'icon' => '&#128202;'],
-    'documenten'   => ['label' => 'Documenten',             'url' => BASE . '/documenten.php',    'icon' => '&#128193;'],
-    'tickets'      => ['label' => 'Support tickets',        'url' => BASE . '/tickets.php',       'icon' => '&#127911;'],
-    'kennisbank'   => ['label' => 'Kennisbank',             'url' => BASE . '/kennisbank.php',    'icon' => '&#128218;'],
-    'feedback'     => ['label' => 'Feedback',               'url' => BASE . '/feedback.php',      'icon' => '&#11088;'],
-    'profiel'      => ['label' => 'Profiel & Beveiliging',  'url' => BASE . '/profiel.php',       'icon' => '&#128100;'],
-    'instellingen' => ['label' => 'Integraties',            'url' => BASE . '/instellingen.php',  'icon' => '&#9881;'],
-    'audit'        => ['label' => 'Audit log',               'url' => BASE . '/audit.php',         'icon' => '&#128220;'],
+    'dashboard'    => ['label' => 'Dashboard',            'url' => BASE . '/index.php',        'icon' => 'home'],
+    'offertes'     => ['label' => 'Offertes',              'url' => BASE . '/offertes.php',      'icon' => 'document'],
+    'facturen'     => ['label' => 'Facturen',               'url' => BASE . '/facturen.php',      'icon' => 'receipt'],
+    'projecten'    => ['label' => 'Projecten',              'url' => BASE . '/projecten.php',     'icon' => 'kanban'],
+    'documenten'   => ['label' => 'Documenten',             'url' => BASE . '/documenten.php',    'icon' => 'folder'],
+    'tickets'      => ['label' => 'Support tickets',        'url' => BASE . '/tickets.php',       'icon' => 'headphones'],
+    'kennisbank'   => ['label' => 'Kennisbank',             'url' => BASE . '/kennisbank.php',    'icon' => 'book'],
+    'feedback'     => ['label' => 'Feedback',               'url' => BASE . '/feedback.php',      'icon' => 'star'],
+    'profiel'      => ['label' => 'Profiel & Beveiliging',  'url' => BASE . '/profiel.php',       'icon' => 'shield'],
+    'instellingen' => ['label' => 'Integraties',            'url' => BASE . '/instellingen.php',  'icon' => 'plug'],
+    'audit'        => ['label' => 'Audit log',               'url' => BASE . '/audit.php',         'icon' => 'clipboard'],
 ];
+
+// Belangrijkste 4 items voor de mobiele bottom-tab-bar; de rest (+ deze 4 ook)
+// blijft bereikbaar via het hamburgermenu/volledige overlay.
+$bottomNavKeys = ['dashboard', 'offertes', 'facturen', 'projecten'];
 ?>
 <!DOCTYPE html>
 <html lang="nl" style="--hz-primary: <?php echo e($brandColor); ?>; --hz-primary-dark: <?php echo e($brandColorDark); ?>;">
@@ -44,6 +48,15 @@ $navItems = [
         .kp-shell-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
         .kp-notif-dot { position: absolute; top: -4px; right: -4px; background: var(--hz-danger); color: #fff; border-radius: 999px; font-size: .65rem; line-height: 1; padding: .2rem .35rem; min-width: 16px; text-align: center; font-weight: 700; }
         .kp-sidebar-brand { display:flex; align-items:center; gap:.6rem; padding: 1rem 1.1rem; border-bottom: 1px solid var(--hz-border); }
+        /* Hamburger alleen tonen op hetzelfde breekpunt (720px) waarop .hz-sidebar
+           in components.css verdwijnt en .hz-bottomnav verschijnt — anders ontstaat
+           een venster (721-767px) waarin sidebar én hamburger allebei zichtbaar zijn. */
+        .kp-hamburger-mobile-only { display: none; }
+        @media (max-width: 720px) { .kp-hamburger-mobile-only { display: flex; } }
+        .kp-mobile-nav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .kp-mobile-nav-close { border: none; background: none; cursor: pointer; padding: .5rem; color: var(--hz-text-muted); }
+        .kp-mobile-nav-list { display: flex; flex-direction: column; gap: .25rem; overflow-y: auto; }
+        .kp-mobile-nav-list .hz-sidebar__item { margin: 0; }
         .kp-sidebar-logo { width: 36px; height: 36px; border-radius: .5rem; background: var(--hz-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; flex-shrink:0; overflow:hidden; }
         .kp-sidebar-logo img { width:100%; height:100%; object-fit:cover; }
     </style>
@@ -68,7 +81,7 @@ $navItems = [
     <nav class="flex-1 py-2 overflow-y-auto">
         <?php foreach ($navItems as $key => $item): ?>
             <a href="<?php echo $item['url']; ?>" class="hz-sidebar__item<?php echo $activeNav === $key ? ' hz-is-active' : ''; ?>">
-                <span aria-hidden="true"><?php echo $item['icon']; ?></span>
+                <?php echo hz_icon($item['icon']); ?>
                 <span class="hz-sidebar__label"><?php echo e($item['label']); ?></span>
             </a>
         <?php endforeach; ?>
@@ -78,17 +91,65 @@ $navItems = [
     </div>
 </aside>
 
+<!-- Volledige-scherm mobiele navigatie-overlay (hamburgermenu-doel) -->
+<div class="hz-mobile-overlay" id="kpMobileNav">
+    <div class="kp-mobile-nav-header">
+        <div class="flex items-center gap-2.5">
+            <div class="kp-sidebar-logo" style="width:32px;height:32px;">
+                <?php if (!empty($account['logo_data_uri'])): ?>
+                    <img src="<?php echo e($account['logo_data_uri']); ?>" alt="Logo">
+                <?php else: ?>
+                    <?php echo e($account['logo_initials'] ?? 'KP'); ?>
+                <?php endif; ?>
+            </div>
+            <span class="font-bold text-sm"><?php echo e($account['company_name'] ?? 'Klantportaal'); ?></span>
+        </div>
+        <button type="button" class="kp-mobile-nav-close" data-hz-mobile-toggle="kpMobileNav" aria-label="Menu sluiten">
+            <?php echo hz_icon('x'); ?>
+        </button>
+    </div>
+    <nav class="kp-mobile-nav-list">
+        <?php foreach ($navItems as $key => $item): ?>
+            <a href="<?php echo $item['url']; ?>" class="hz-sidebar__item<?php echo $activeNav === $key ? ' hz-is-active' : ''; ?>">
+                <?php echo hz_icon($item['icon']); ?>
+                <span class="hz-sidebar__label"><?php echo e($item['label']); ?></span>
+            </a>
+        <?php endforeach; ?>
+        <a href="<?php echo BASE; ?>/logout.php" class="hz-sidebar__item">
+            <?php echo hz_icon('x-octagon'); ?>
+            <span class="hz-sidebar__label">Uitloggen</span>
+        </a>
+    </nav>
+</div>
+
+<!-- Vaste mobiele bottom-tab-bar met de belangrijkste 4 items -->
+<nav class="hz-bottomnav">
+    <?php foreach ($bottomNavKeys as $key): $item = $navItems[$key]; ?>
+        <a href="<?php echo $item['url']; ?>" class="hz-bottomnav__item<?php echo $activeNav === $key ? ' hz-is-active' : ''; ?>">
+            <?php echo hz_icon($item['icon']); ?>
+            <span><?php echo e($item['label']); ?></span>
+        </a>
+    <?php endforeach; ?>
+    <button type="button" class="hz-bottomnav__item" data-hz-mobile-toggle="kpMobileNav" style="border:none;background:none;cursor:pointer;font-family:inherit;">
+        <?php echo hz_icon('menu'); ?>
+        <span>Meer</span>
+    </button>
+</nav>
+
 <div class="kp-shell-main">
     <!-- Topbar -->
     <header class="hz-navbar">
         <div class="flex items-center gap-3">
+            <button type="button" class="hz-hamburger kp-hamburger-mobile-only" data-hz-mobile-toggle="kpMobileNav" aria-label="Menu" aria-controls="kpMobileNav">
+                <span></span><span></span><span></span>
+            </button>
             <span class="text-sm text-slate-400 hidden sm:inline">Ingelogd als</span>
             <span class="font-medium text-sm"><?php echo e($account['company_name'] ?? ''); ?></span>
         </div>
         <div class="hz-navbar__actions">
             <div class="hz-dropdown">
                 <button data-hz-dropdown-trigger="notifMenu" class="hz-icon-btn hz-icon-btn--round relative" title="Notificaties" aria-label="Notificaties">
-                    &#128276;
+                    <?php echo hz_icon('bell'); ?>
                     <?php if ($unread > 0): ?><span class="kp-notif-dot"><?php echo $unread > 9 ? '9+' : $unread; ?></span><?php endif; ?>
                 </button>
                 <div id="notifMenu" class="hz-dropdown__menu" style="min-width:320px; max-height:360px; overflow-y:auto;">

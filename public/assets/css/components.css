@@ -56,12 +56,25 @@
 .hz-slideover__header { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid var(--hz-border); }
 .hz-slideover__body { padding:1.25rem; overflow-y:auto; flex:1; }
 
-/* --- Mobiele navigatie --- */
+/* --- Mobiele navigatie ---
+   .hz-sidebar is een vaste 240px-breed desktop-element zonder eigen mobiele
+   gedrag; onder 720px verbergen we hem volledig en nemen .hz-bottomnav +
+   .hz-mobile-overlay (hieronder, incl. bijbehorende JS in components.js die al
+   bestond maar nergens werd gebruikt) de navigatie over. Zonder deze regel
+   bleef de volledige 240px-sidebar altijd zichtbaar naast de content, wat op
+   een telefoon tot een horizontaal overlopende pagina leidde. */
+@media (max-width: 720px) {
+  .hz-sidebar { display: none; }
+}
 .hz-bottomnav { display:none; }
 @media (max-width: 720px) {
-  .hz-bottomnav { display:flex; position:fixed; bottom:0; left:0; right:0; background:var(--hz-surface); border-top:1px solid var(--hz-border); z-index:70; }
+  .hz-bottomnav { display:flex; position:fixed; bottom:0; left:0; right:0; background:var(--hz-surface); border-top:1px solid var(--hz-border); z-index:70; padding-bottom: env(safe-area-inset-bottom); }
   .hz-bottomnav__item { flex:1; display:flex; flex-direction:column; align-items:center; gap:.15rem; padding:.5rem 0; color:var(--hz-text-muted); text-decoration:none; font-size:.7rem; }
   .hz-bottomnav__item.hz-is-active { color:var(--hz-primary); }
+  .hz-bottomnav__item svg { width: 20px; height: 20px; }
+  /* Ruimte onderaan de hoofdcontent zodat de vaste bottom-tab-bar nooit de
+     laatste rij content overlapt op mobiel. */
+  .kp-shell-main { padding-bottom: 64px; }
 }
 .hz-mobile-overlay { position:fixed; inset:0; background:var(--hz-surface); z-index:90; display:none; flex-direction:column; padding:1.5rem; }
 .hz-mobile-overlay.hz-is-open { display:flex; }
